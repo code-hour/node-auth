@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
+const expressjwt = require('express-jwt');
+const jwt = require('jsonwebtoken');
 const cors = require('cors');
 
 const PORT = process.env.PORT || 8888;
@@ -8,7 +10,10 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-const jwt = require('jsonwebtoken');
+const jwtCheck = expressjwt({
+  secret: 'mysupersecretkey'
+});
+
 const users = require('./users');
 
 app.get('/', (req, res) => {
@@ -44,6 +49,14 @@ app.post('/login', (req, res) => {
   }, 'mysupersecretkey', {expiresIn: '30 minutes'});
 
   res.status(200).send({token});
+});
+
+app.get('/resource', (req, res) => {
+  res.status(200).send('This is a public resource');
+});
+
+app.get('/resource/secret', jwtCheck, (req, res) => {
+  res.status(200).send('Secret resource. You should be logged in to see');
 });
 
 app.get('*', (req, res) => {
